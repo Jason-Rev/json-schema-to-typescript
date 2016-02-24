@@ -1,0 +1,37 @@
+{
+    "title": "Account",
+    "type": "object",
+    "$schema": "http:\/\/json-schema.org\/draft-04\/schema#",
+    "id": ".\/schemas\/account.json#",
+    "properties": {
+        "pid": {
+            "type": "string",
+            "title": "Pid"
+        },
+        "name": {
+            "type": "string",
+            "title": "Name"
+        },
+        "id": {
+            "type": "integer",
+            "readonly": true,
+            "title": "Id"
+        },
+        "created": {
+            "type": "string",
+            "readonly": true,
+            "format": "date-time",
+            "title": "Created"
+        },
+        "updated": {
+            "type": "string",
+            "readonly": true,
+            "format": "date-time",
+            "title": "Updated"
+        }
+    },
+    "required": [
+        "pid",
+        "name"
+    ]
+}

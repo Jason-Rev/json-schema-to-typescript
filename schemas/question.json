@@ -1,0 +1,52 @@
+{
+    "title": "Question",
+    "type": "object",
+    "$schema": "http:\/\/json-schema.org\/draft-04\/schema#",
+    "id": ".\/schemas\/question.json#",
+    "oneOf": [
+        {
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "multiple_choice"
+                    ]
+                }
+            },
+            "$ref": ".\/schemas\/multiple_choice_question.json#"
+        },
+        {
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "open_ended"
+                    ]
+                }
+            },
+            "$ref": ".\/schemas\/open_ended_question.json#"
+        },
+        {
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "range"
+                    ]
+                }
+            },
+            "$ref": ".\/schemas\/range_question.json#"
+        },
+        {
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "predefined_choice"
+                    ]
+                }
+            },
+            "$ref": ".\/schemas\/predefined_choice_question.json#"
+        }
+    ]
+}
