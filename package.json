@@ -31,6 +31,7 @@
     "commander": "^2.9.0",
     "es6-promise": "^3.1.2",
     "get-uri": "^2.0.0",
+    "handlebars": "^4.0.5",
     "lodash": "^4.5.1",
     "mustache": "^2.2.1",
     "rx": "^4.0.8",

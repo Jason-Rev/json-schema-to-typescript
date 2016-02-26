@@ -11,6 +11,17 @@ import getUri = require("get-uri");
 import { Stream } from 'stream';
 import { fromStream } from 'rx-node';
 import { Schema } from './jsonschema';
+import { generateCode, RenderModel } from './codegen';
+
+const typeDictionary: _.Dictionary<string> = {
+"array": "[]",
+"boolean": "boolean",
+"integer": "number",
+"null": "null",
+"number": "number",
+"object": "Object",
+"string": "string"
+};
 
 function readEntireStream(stream: Stream) {
     return fromStream(stream).reduce((doc:string, append:string)=>doc + append, '').toPromise();
@@ -45,8 +56,40 @@ export function fetchSchema(uri : string, domain: string = ''): Promise<Schema> 
 }
 
 
-export function gen(uris: string[]) {
-    const source = new Rx.Subject<string>();
+export class CodeGenerator {
+    
+    schemas: _.Dictionary<Promise<Schema>> = {};
+    
+    
+    constructor(public domain: string = '') {
+    }
 
-    return source;
+    fetchSchema(uri: string) {
+        return this.schemas[uri] || 
+            (this.schemas[uri] = fetchSchema(uri, this.domain).then(schema => schema));
+    }
+
+    public convertSchemaToRenderModel = (schema: Schema, name?: string) : RenderModel => {
+        const requiredProperties = schema.required || [];
+        const properties = schema.properties 
+            ? _.values(_.mapValues(schema.properties, this.convertSchemaToRenderModel)) as RenderModel[] 
+            : null;
+        const modelType: string = typeof schema.type === 'string' 
+            ? schema.type as string
+            : (schema.type instanceof Array 
+                ? (schema.type as string[]).join('|') 
+                : null);
+        return {
+            name: name || schema.title,
+            type: modelType,
+            properties: properties
+        };
+    };
+
+
+    generateSchema(uri: string) {
+        return this.fetchSchema(uri)
+            .then(schema=>generateCode(this.convertSchemaToRenderModel(schema)));
+    }
 }
+
