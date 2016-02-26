@@ -7,10 +7,10 @@ const handlebars = Handlebars.create();
 
 const templateInterface = `
 {{#*inline 'simpleType'}}
-{{name}}: {{type}};
+{{name}}{{^required}}?{{/required}}: {{type}};
 {{/inline}}
 {{#*inline 'complexType'}} 
-{{name}}: {
+{{name}}{{^required}}?{{/required}}: {
     {{#each properties}}
         {{#if type}}
     {{> simpleType}}

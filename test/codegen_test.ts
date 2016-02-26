@@ -17,8 +17,8 @@ describe('code generation templates', () => {
         const iModel: RenderModel = {
             name: 'IModel',
             properties: [
-                { name: 'name', type: 'string' },
-                { name: 'age', type: 'number' }
+                { name: 'name', type: 'string', required: true },
+                { name: 'age', type: 'number', required: true }
             ]    
         };
         
@@ -32,8 +32,8 @@ describe('code generation templates', () => {
         const iModel: RenderModel = {
             name: 'IModel',
             properties: [
-                { name: 'name', type: 'string' },
-                { name: 'age', type: 'number' },
+                { name: 'name', type: 'string', required: true },
+                { name: 'age', type: 'number', required: true },
                 { name: 'address', 
                   properties: [
                         { name: 'address1', type: 'string' },
@@ -55,9 +55,9 @@ describe('code generation templates', () => {
         assert.match(generateCode(iModel), /export interface IModel/);
         assert.match(generateCode(iModel), /name: string;/);
         assert.match(generateCode(iModel), /age: number;/);
-        assert.match(generateCode(iModel), /address: {/);
-        assert.match(generateCode(iModel), /address1: string;/);
-        assert.match(generateCode(iModel), /city: string;/);
-        assert.match(generateCode(iModel), /\s{12}placesId: string;/);
+        assert.match(generateCode(iModel), /address\?: {/);
+        assert.match(generateCode(iModel), /address1\?: string;/);
+        assert.match(generateCode(iModel), /city\?: string;/);
+        assert.match(generateCode(iModel), /\s{12}placesId\?: string;/);
     });
 });
