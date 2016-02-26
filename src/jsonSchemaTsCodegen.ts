@@ -60,13 +60,60 @@ export class CodeGenerator {
     
     schemas: _.Dictionary<Promise<Schema>> = {};
     
+    subTypes: _.Dictionary<RenderModel> = {};
     
-    constructor(public domain: string = '') {
-    }
+    constructor(public domain: string = '') {}
 
     fetchSchema(uri: string) {
         return this.schemas[uri] || 
             (this.schemas[uri] = fetchSchema(uri, this.domain).then(schema => schema));
+    }
+    
+    registerSubType(schema: Schema) {
+        const interfaceName = schema.title.replace(/\s+/g, '');
+        
+        if (! this.subTypes[interfaceName]) {
+            this.subTypes[interfaceName] = this.convertSchemaToRenderModel(schema);
+        }
+        
+        return interfaceName;
+    }
+    
+    determineType(schema: Schema): string {
+        const schemaTypes: string[] = schema.type instanceof Array ? schema.type as string[] : (schema.type ? [schema.type as string] : []) ;
+        
+        function mapType(type: string): string {
+            switch (type) {
+                case 'integer': return 'number';
+                case 'number': return 'number';
+                case 'boolean': return 'boolean';
+                case 'string': return 'string';
+                case 'array': return 'any[]';
+                case 'object': return '{[index:string]:any}';
+            }
+            return 'any';
+        }
+
+        const type = _(schemaTypes).map(mapType).value().join('|');
+        
+        if (!type && schema.enum) {
+            return 'string';
+        }        
+
+        if (type == 'object' && schema.properties) {
+            return null;
+        }
+        
+        if (schema.items) {
+            const schemaItem = schema.items as Schema;
+            const schemaSubType = this.registerSubType(schemaItem); 
+            if (schema.type == 'array') {
+                return schemaSubType + '[]';
+            }
+            return schemaSubType;
+        }
+        
+        return type;
     }
 
     public convertSchemaToRenderModel = (schema: Schema, name?: string) : RenderModel => {
@@ -82,11 +129,8 @@ export class CodeGenerator {
                 return _.assign({ required }, model) as RenderModel;
             })
             .value()
-        const modelType: string = typeof schema.type === 'string' 
-            ? schema.type as string
-            : (schema.type instanceof Array 
-                ? (schema.type as string[]).join('|') 
-                : null);
+        
+        const modelType: string = this.determineType(schema);
 
         return {
             name: name,
@@ -98,7 +142,17 @@ export class CodeGenerator {
 
     generateSchema(uri: string) {
         return this.fetchSchema(uri)
-            .then(schema=>generateCode(this.convertSchemaToRenderModel(schema)));
+            .then(schema=> { 
+                const models: RenderModel[] = [
+                    this.convertSchemaToRenderModel(schema),
+                    ...(_(this.subTypes).map(a=>a).value())
+                ];
+
+                return _(models)
+                    .map(generateCode)
+                    .value()
+                    .join('\n');
+            });
     }
 }
 

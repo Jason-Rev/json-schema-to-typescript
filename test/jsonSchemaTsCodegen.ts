@@ -17,7 +17,7 @@ describe('test Json Schema TS Codegen', () => {
         return (new CodeGenerator(domain))
             .generateSchema(uriAccount)
             .then(code => {
-                console.log(code);
+                // console.log(code);
                 assert.match(code, /export interface Account/);
                 assert.match(code, /pid: string/);
                 assert.match(code, /name: string/);
@@ -30,6 +30,7 @@ describe('test Json Schema TS Codegen', () => {
             .then(code => {
                 console.log(code);
                 assert.match(code, /export interface Tag/);
+                assert.match(code, /export interface Translation/, 'make sure the sub classes were declared');
             });
     });
 });
