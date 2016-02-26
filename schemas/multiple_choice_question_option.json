@@ -1,0 +1,25 @@
+{
+    "title": "Multiple_choice_question_option",
+    "type": "object",
+    "$schema": "http:\/\/json-schema.org\/draft-04\/schema#",
+    "id": ".\/schemas\/multiple_choice_question_option.json#",
+    "properties": {
+        "maxNumberOfChoices": {
+            "type": "integer",
+            "title": "Max Number Of Choices"
+        },
+        "isRequired": {
+            "type": "boolean",
+            "title": "Is Required"
+        },
+        "isAllowingNotApplicable": {
+            "type": "boolean",
+            "title": "Is Allowing Not Applicable"
+        }
+    },
+    "required": [
+        "maxNumberOfChoices",
+        "isRequired",
+        "isAllowingNotApplicable"
+    ]
+}

@@ -1,0 +1,25 @@
+{
+    "title": "Date_question_option",
+    "type": "object",
+    "$schema": "http:\/\/json-schema.org\/draft-04\/schema#",
+    "id": ".\/schemas\/date_question_option.json#",
+    "properties": {
+        "dateFormat": {
+            "type": "integer",
+            "title": "Date Format"
+        },
+        "isRequired": {
+            "type": "boolean",
+            "title": "Is Required"
+        },
+        "isAllowingNotApplicable": {
+            "type": "boolean",
+            "title": "Is Allowing Not Applicable"
+        }
+    },
+    "required": [
+        "dateFormat",
+        "isRequired",
+        "isAllowingNotApplicable"
+    ]
+}

@@ -1,0 +1,20 @@
+{
+    "title": "Open_ended_question_option",
+    "type": "object",
+    "$schema": "http:\/\/json-schema.org\/draft-04\/schema#",
+    "id": ".\/schemas\/open_ended_question_option.json#",
+    "properties": {
+        "isRequired": {
+            "type": "boolean",
+            "title": "Is Required"
+        },
+        "isAllowingNotApplicable": {
+            "type": "boolean",
+            "title": "Is Allowing Not Applicable"
+        }
+    },
+    "required": [
+        "isRequired",
+        "isAllowingNotApplicable"
+    ]
+}
