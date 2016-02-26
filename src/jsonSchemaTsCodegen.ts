@@ -70,19 +70,28 @@ export class CodeGenerator {
     }
 
     public convertSchemaToRenderModel = (schema: Schema, name?: string) : RenderModel => {
-        const requiredProperties = schema.required || [];
-        const properties = schema.properties 
-            ? _.values(_.mapValues(schema.properties, this.convertSchemaToRenderModel)) as RenderModel[] 
-            : null;
+        name = name || schema.title;
+        const requiredList = schema.required || [];
+        const requiredProperties = _.zipObject(requiredList, requiredList);
+        const properties: RenderModel[] = _(schema.properties || [])
+            // convert the schema to a RenderModel
+            .mapValues(this.convertSchemaToRenderModel)
+            // add the required flag
+            .map((model: RenderModel) => {
+                const required = requiredProperties[model.name] || false;
+                return _.assign({ required }, model) as RenderModel;
+            })
+            .value()
         const modelType: string = typeof schema.type === 'string' 
             ? schema.type as string
             : (schema.type instanceof Array 
                 ? (schema.type as string[]).join('|') 
                 : null);
+
         return {
-            name: name || schema.title,
+            name: name,
             type: modelType,
-            properties: properties
+            properties
         };
     };
 

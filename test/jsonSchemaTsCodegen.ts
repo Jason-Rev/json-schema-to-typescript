@@ -19,6 +19,8 @@ describe('test Json Schema TS Codegen', () => {
             .then(code => {
                 console.log(code);
                 assert.match(code, /export interface Account/);
+                assert.match(code, /pid: string/);
+                assert.match(code, /name: string/);
             });
     });
 
