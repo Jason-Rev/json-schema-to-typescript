@@ -28,6 +28,27 @@ function readDir(directory): Promise<string[]> {
 }
 
 describe('test Json Schema TS Codegen', () => {
+
+    it('tests code generation for files in directory', () => {
+        const codeGenerator = new CodeGenerator(`file:/${schemaDir}/`);
+        
+        return Rx.Observable.fromPromise(readDir(schemaDir))
+            .flatMap(p => p)  // flatten promise
+            .filter(filename => /\.json$/.test(filename))
+            // .tap(filename => { console.log(filename); })
+            .toArray()
+            .map(filenames => codeGenerator.generateCodeFromSchemaUris(filenames))
+            .flatMap(p => p)
+            .tap(code => {
+                console.log(code);
+                assert.match(code, /export interface Tag/);
+                assert.match(code, /export interface Question/);
+                assert.match(code, /export interface Account/);
+            })
+            .toPromise();
+    });
+
+
     it('tests code generation Account', () => {
         return (new CodeGenerator(domain))
             .generateSchema(uriAccount)
@@ -43,11 +64,12 @@ describe('test Json Schema TS Codegen', () => {
         return (new CodeGenerator(domain))
             .generateSchema(uriTag)
             .then(code => {
-                console.log(code);
+                //console.log(code);
                 assert.match(code, /export interface Tag/);
                 assert.match(code, /export interface Translation/, 'make sure the sub classes were declared');
             });
     });
+
 });
 
 
@@ -55,7 +77,7 @@ describe('test fetching files', () => {
     it('tests fetchFileFromUri', () => {
         return fetchFileFromUri(domain + uriAccount).then(
             content => {
-                console.log(content);
+                //console.log(content);
                 assert.isString(content);
             }
         );
@@ -64,7 +86,7 @@ describe('test fetching files', () => {
     it('tests fetchSchema', () => {
         return fetchSchema(uriAccount, domain).then(
             schema => {
-                console.log(schema);
+                //console.log(schema);
                 assert.isObject(schema);
             }
         );

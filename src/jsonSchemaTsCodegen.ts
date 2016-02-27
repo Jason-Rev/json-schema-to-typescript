@@ -45,6 +45,17 @@ export function fetchSchema(uri : string, domain: string = ''): Promise<Schema> 
     return fetchFileFromUri(absoluteUri).then((json:string) => JSON.parse(json));
 }
 
+function toTitleCase(str)
+{
+    return str.replace(/\w+/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+}
+
+/**
+ * Make a camelCase class name.
+ */
+function toClassName(str) {
+    return toTitleCase(str.replace(/[_-]/g, ' ')).replace(/\s+/g, '');
+}
 
 export class CodeGenerator {
     
@@ -56,11 +67,27 @@ export class CodeGenerator {
 
     fetchSchema(uri: string) {
         return this.schemas[uri] || 
-            (this.schemas[uri] = fetchSchema(uri, this.domain).then(schema => schema));
+            (this.schemas[uri] = fetchSchema(uri, this.domain));
+    }
+
+    mapType(type: string): string {
+        switch (type) {
+            case 'integer': return 'number';
+            case 'number': return 'number';
+            case 'boolean': return 'boolean';
+            case 'string': return 'string';
+            case 'array': return 'any[]';
+            case 'object': return '{[index:string]:any}';
+        }
+        return 'any';
     }
     
     registerSubType(schema: Schema) {
-        const interfaceName = schema.title.replace(/\s+/g, '');
+        if (! schema.title) {
+            return this.mapType(schema.type as string);
+        }
+        
+        const interfaceName = toClassName(schema.title);
         
         if (! this.subTypes[interfaceName]) {
             this.subTypes[interfaceName] = this.convertSchemaToRenderModel(schema);
@@ -72,24 +99,12 @@ export class CodeGenerator {
     determineType(schema: Schema): string {
         const schemaTypes: string[] = schema.type instanceof Array ? schema.type as string[] : (schema.type ? [schema.type as string] : []) ;
         
-        function mapType(type: string): string {
-            switch (type) {
-                case 'integer': return 'number';
-                case 'number': return 'number';
-                case 'boolean': return 'boolean';
-                case 'string': return 'string';
-                case 'array': return 'any[]';
-                case 'object': return '{[index:string]:any}';
-            }
-            return 'any';
-        }
-
-        const type = _(schemaTypes).map(mapType).value().join('|');
+        const type = _(schemaTypes).map(this.mapType).value().join('|');
         
         if (!type && schema.enum) {
             return 'string';
-        }        
-
+        }
+        
         if (type == 'object' && schema.properties) {
             return null;
         }
@@ -102,12 +117,16 @@ export class CodeGenerator {
             }
             return schemaSubType;
         }
+
+        if (!type && !schema.properties) {
+            return 'any';
+        }        
         
         return type;
     }
 
     public convertSchemaToRenderModel = (schema: Schema, name?: string) : RenderModel => {
-        name = name || schema.title;
+        name = name || toClassName(schema.title);
         const requiredList = schema.required || [];
         const requiredProperties = _.zipObject(requiredList, requiredList);
         const properties: RenderModel[] = _(schema.properties || [])
@@ -128,12 +147,17 @@ export class CodeGenerator {
             properties
         };
     };
-
-    generateSchema(uri: string) {
-        return this.fetchSchema(uri)
-            .then(schema=> { 
+    
+    generateCodeFromSchemaUris(uris: string[]) {
+        return Rx.Observable.from(uris)
+            .map(uri => this.fetchSchema(uri))
+            .flatMap(s=>s) // convert the Promise<schema> into schema
+            // .tap(uri => { console.log(uri); })
+            .map(schema => this.convertSchemaToRenderModel(schema))
+            .toArray()
+            .map(schemaModels => {
                 const models: RenderModel[] = [
-                    this.convertSchemaToRenderModel(schema),
+                    ...schemaModels,
                     ...(_(this.subTypes).map(a=>a).value())
                 ];
 
@@ -141,8 +165,13 @@ export class CodeGenerator {
                     .map(generateCode)
                     .value()
                     .join('\n');
-            });
+                
+            })
+            .toPromise();        
     }
     
+    generateSchema(uri: string) {
+        return this.generateCodeFromSchemaUris([uri]);
+    }
 }
 
