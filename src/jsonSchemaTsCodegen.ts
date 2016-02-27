@@ -105,7 +105,7 @@ export class CodeGenerator {
             return 'string';
         }
         
-        if (type == 'object' && schema.properties) {
+        if (schema.type == 'object' && schema.properties) {
             return null;
         }
         
