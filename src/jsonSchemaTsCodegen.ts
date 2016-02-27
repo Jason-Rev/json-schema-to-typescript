@@ -13,16 +13,6 @@ import { fromStream } from 'rx-node';
 import { Schema } from './jsonschema';
 import { generateCode, RenderModel } from './codegen';
 
-const typeDictionary: _.Dictionary<string> = {
-"array": "[]",
-"boolean": "boolean",
-"integer": "number",
-"null": "null",
-"number": "number",
-"object": "Object",
-"string": "string"
-};
-
 function readEntireStream(stream: Stream) {
     return fromStream(stream).reduce((doc:string, append:string)=>doc + append, '').toPromise();
 }
@@ -139,7 +129,6 @@ export class CodeGenerator {
         };
     };
 
-
     generateSchema(uri: string) {
         return this.fetchSchema(uri)
             .then(schema=> { 
@@ -154,5 +143,6 @@ export class CodeGenerator {
                     .join('\n');
             });
     }
+    
 }
 

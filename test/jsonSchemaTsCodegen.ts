@@ -5,12 +5,27 @@
 import chai = require('chai');
 import * as _ from "lodash";
 import { fetchSchema, fetchFileFromUri, CodeGenerator } from "../src/jsonSchemaTsCodegen";
-
+import * as Rx from "rx";
+import * as jasonPath from "jsonpath";
 const { assert } = chai;
+import * as fs from "fs";
 
+const schemaDir = `${__dirname}/../../schemas`;
 const domain = `file:/${__dirname}/../../`;
 const uriAccount = 'schemas/account.json';
 const uriTag = 'schemas/tag.json';
+const uriDateQuestionOption = 'schemas/date_question_option.json';
+
+function readDir(directory): Promise<string[]> {
+    return  new Promise<string[]>((resolve, reject) => {
+        fs.readdir(directory, (err, files) => {
+            if (err) {
+                reject(err);
+            }
+            resolve(files);
+        });
+    });
+}
 
 describe('test Json Schema TS Codegen', () => {
     it('tests code generation Account', () => {
@@ -53,6 +68,23 @@ describe('test fetching files', () => {
                 assert.isObject(schema);
             }
         );
+    });
+});
+
+describe('test fetching files and Rx', () => {
+    it('test fetching multiple schema files', () => {
+        return Rx.Observable.fromPromise(readDir(schemaDir))
+            .flatMap(x => x)
+            .filter(filename => /\.json$/.test(filename))
+            .map(filename => `file:/${schemaDir}/${filename}`)
+            //.tap(filename => { console.log(filename); })
+            .map(filename => fetchSchema(filename))
+            .flatMap(x=>x)
+            // Note: the files can come back out of order.
+            //.tap(schema => { console.log(schema.title); })
+            .tap(schema => { assert.isString(schema.title); })
+            .toPromise()
+        ;  
     });
 });
 
