@@ -51,7 +51,7 @@ describe('test Json Schema TS Codegen', () => {
 
     it('tests code generation Account', () => {
         return (new CodeGenerator(domain))
-            .generateSchema(uriAccount)
+            .generateCodeFromSchema(uriAccount)
             .then(code => {
                 // console.log(code);
                 assert.match(code, /export interface Account/);
@@ -62,7 +62,7 @@ describe('test Json Schema TS Codegen', () => {
 
     it('tests code generation Tag', () => {
         return (new CodeGenerator(domain))
-            .generateSchema(uriTag)
+            .generateCodeFromSchema(uriTag)
             .then(code => {
                 //console.log(code);
                 assert.match(code, /export interface Tag/);

@@ -31,7 +31,7 @@ export interface {{name}} {
     {{> complexType}}
         {{/if}}
     {{/each}}
-} 
+}
 `;
 
 const handlebarsConfig = {

@@ -30,6 +30,8 @@
   "dependencies": {
     "commander": "^2.9.0",
     "es6-promise": "^3.1.2",
+    "fs-extra": "^0.26.5",
+    "fs-promise": "^0.4.1",
     "get-uri": "^2.0.0",
     "handlebars": "^4.0.5",
     "jsonpath": "^0.2.2",

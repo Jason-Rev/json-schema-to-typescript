@@ -4,6 +4,7 @@
 
 /// <reference path="../node_modules/rx/ts/rx.all.d.ts"/>
 /// <reference path="./rx-node.d.ts"/>
+/// <reference path="./fs-promise.d.ts"/>
 
 declare module "get-uri" {
     import * as fs from 'fs';

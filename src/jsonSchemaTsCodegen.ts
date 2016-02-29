@@ -57,6 +57,13 @@ function toClassName(str) {
     return toTitleCase(str.replace(/[_-]/g, ' ')).replace(/\s+/g, '');
 }
 
+/**
+ * convert a thenable into a Promise<>
+ */
+function normalizePromise<T>(promise) {
+    return new Promise<T>((resolve, reject) => { promise.then(resolve, reject) }); 
+}
+
 export class CodeGenerator {
     
     schemas: _.Dictionary<Promise<Schema>> = {};
@@ -77,7 +84,7 @@ export class CodeGenerator {
             case 'boolean': return 'boolean';
             case 'string': return 'string';
             case 'array': return 'any[]';
-            case 'object': return '{[index:string]:any}';
+            case 'object': return '{[index: string]: any}';
         }
         return 'any';
     }
@@ -148,11 +155,10 @@ export class CodeGenerator {
         };
     };
     
-    generateCodeFromSchemaUris(uris: string[]) {
-        return Rx.Observable.from(uris)
+    generateCodeFromSchemaUris(uris: string[]): Promise<string> {
+        return normalizePromise<string>(Rx.Observable.from(uris)
             .map(uri => this.fetchSchema(uri))
             .flatMap(s=>s) // convert the Promise<schema> into schema
-            // .tap(uri => { console.log(uri); })
             .map(schema => this.convertSchemaToRenderModel(schema))
             .toArray()
             .map(schemaModels => {
@@ -167,10 +173,10 @@ export class CodeGenerator {
                     .join('\n');
                 
             })
-            .toPromise();        
+            .toPromise());        
     }
     
-    generateSchema(uri: string) {
+    generateCodeFromSchema(uri: string) {
         return this.generateCodeFromSchemaUris([uri]);
     }
 }
