@@ -66,6 +66,7 @@ describe('test Json Schema TS Codegen', () => {
             .then(code => {
                 //console.log(code);
                 assert.match(code, /export interface Tag/);
+                assert.match(code, /export interface Translation/, 'make sure the sub classes were declared');
             });
     });
 

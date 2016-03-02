@@ -149,13 +149,11 @@ export class CodeGenerator {
 
         const modelType: string = this.determineType(schema);
 
-        const model = {
+        return {
             name: name,
             type: modelType,
             properties
         };
-        this.modelsByType[model.name] = model;
-        return model;
     };
 
     generateCodeFromSchemaUris(uris: string[]): Promise<string> {
@@ -163,6 +161,8 @@ export class CodeGenerator {
             .map(uri => this.fetchSchema(uri))
             .flatMap(s=>s) // convert the Promise<schema> into schema
             .map(schema => this.convertSchemaToRenderModel(schema))
+            // Remember the top level models
+            .tap(model => { this.modelsByType[model.name] = model; })
             .toArray()
             .map(schemaModels => {
                 const models: RenderModel[] = [
