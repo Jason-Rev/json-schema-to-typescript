@@ -61,19 +61,20 @@ function toClassName(str) {
  * convert a thenable into a Promise<>
  */
 function normalizePromise<T>(promise) {
-    return new Promise<T>((resolve, reject) => { promise.then(resolve, reject) }); 
+    return new Promise<T>((resolve, reject) => { promise.then(resolve, reject) });
 }
 
 export class CodeGenerator {
-    
+
     schemas: _.Dictionary<Promise<Schema>> = {};
-    
+
     subTypes: _.Dictionary<RenderModel> = {};
-    
+    modelsByType: _.Dictionary<RenderModel> = {};
+
     constructor(public domain: string = '') {}
 
     fetchSchema(uri: string) {
-        return this.schemas[uri] || 
+        return this.schemas[uri] ||
             (this.schemas[uri] = fetchSchema(uri, this.domain));
     }
 
@@ -88,37 +89,37 @@ export class CodeGenerator {
         }
         return 'any';
     }
-    
+
     registerSubType(schema: Schema) {
         if (! schema.title) {
             return this.mapType(schema.type as string);
         }
-        
+
         const interfaceName = toClassName(schema.title);
-        
+
         if (! this.subTypes[interfaceName]) {
             this.subTypes[interfaceName] = this.convertSchemaToRenderModel(schema);
         }
-        
+
         return interfaceName;
     }
-    
+
     determineType(schema: Schema): string {
         const schemaTypes: string[] = schema.type instanceof Array ? schema.type as string[] : (schema.type ? [schema.type as string] : []) ;
-        
+
         const type = _(schemaTypes).map(this.mapType).value().join('|');
-        
+
         if (!type && schema.enum) {
             return 'string';
         }
-        
+
         if (schema.type == 'object' && schema.properties) {
             return null;
         }
-        
+
         if (schema.items) {
             const schemaItem = schema.items as Schema;
-            const schemaSubType = this.registerSubType(schemaItem); 
+            const schemaSubType = this.registerSubType(schemaItem);
             if (schema.type == 'array') {
                 return schemaSubType + '[]';
             }
@@ -127,8 +128,8 @@ export class CodeGenerator {
 
         if (!type && !schema.properties) {
             return 'any';
-        }        
-        
+        }
+
         return type;
     }
 
@@ -145,16 +146,18 @@ export class CodeGenerator {
                 return _.assign({ required }, model) as RenderModel;
             })
             .value()
-        
+
         const modelType: string = this.determineType(schema);
 
-        return {
+        const model = {
             name: name,
             type: modelType,
             properties
         };
+        this.modelsByType[model.name] = model;
+        return model;
     };
-    
+
     generateCodeFromSchemaUris(uris: string[]): Promise<string> {
         return normalizePromise<string>(Rx.Observable.from(uris)
             .map(uri => this.fetchSchema(uri))
@@ -164,18 +167,20 @@ export class CodeGenerator {
             .map(schemaModels => {
                 const models: RenderModel[] = [
                     ...schemaModels,
-                    ...(_(this.subTypes).map(a=>a).value())
+                    ...(_(this.subTypes)
+                        .filter(model => ! this.modelsByType[model.name])
+                        .map(a=>a).value())
                 ];
 
                 return _(models)
                     .map(generateCode)
                     .value()
                     .join('\n');
-                
+
             })
-            .toPromise());        
+            .toPromise());
     }
-    
+
     generateCodeFromSchema(uri: string) {
         return this.generateCodeFromSchemaUris([uri]);
     }
