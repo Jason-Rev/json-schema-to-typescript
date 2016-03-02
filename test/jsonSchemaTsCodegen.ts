@@ -31,7 +31,7 @@ describe('test Json Schema TS Codegen', () => {
 
     it('tests code generation for files in directory', () => {
         const codeGenerator = new CodeGenerator(`file:/${schemaDir}/`);
-        
+
         return Rx.Observable.fromPromise(readDir(schemaDir))
             .flatMap(p => p)  // flatten promise
             .filter(filename => /\.json$/.test(filename))
@@ -66,7 +66,6 @@ describe('test Json Schema TS Codegen', () => {
             .then(code => {
                 //console.log(code);
                 assert.match(code, /export interface Tag/);
-                assert.match(code, /export interface Translation/, 'make sure the sub classes were declared');
             });
     });
 
@@ -82,7 +81,7 @@ describe('test fetching files', () => {
             }
         );
     });
-    
+
     it('tests fetchSchema', () => {
         return fetchSchema(uriAccount, domain).then(
             schema => {
@@ -106,7 +105,7 @@ describe('test fetching files and Rx', () => {
             //.tap(schema => { console.log(schema.title); })
             .tap(schema => { assert.isString(schema.title); })
             .toPromise()
-        ;  
+        ;
     });
 });
 
