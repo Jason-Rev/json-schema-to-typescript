@@ -79,6 +79,11 @@ function singleObservable<T>(value: T) {
     return Rx.Observable.just<T>(value);
 }
 
+function reverse(s: string): string {
+  return s.split('').reverse().join('');
+}
+
+
 export class CodeGenerator {
 
     schemas: _.Dictionary<Rx.Observable<Schema>> = {};
@@ -215,8 +220,6 @@ export class CodeGenerator {
         );
     };
 
-
-
     generateCodeFromSchemaUris(uris: string[]): Promise<string> {
         return Rx.Observable.from(uris)
             .flatMap(uri => this.fetchSchema(uri))
@@ -233,7 +236,12 @@ export class CodeGenerator {
                         .map(a => a).value())
                 ];
 
-                return _(models)
+                const sortedModels = models.sort((a, b) => {
+                    if (a === b) return 0;
+                    return reverse(a.name) < reverse(b.name) ? -1 : 1;
+                });
+
+                return _(sortedModels)
                     .map(generateCode)
                     .value()
                     .join('\n');
