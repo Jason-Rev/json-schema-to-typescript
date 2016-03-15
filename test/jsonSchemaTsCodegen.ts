@@ -40,6 +40,8 @@ describe('test Json Schema TS Codegen', () => {
                 assert.match(code, /export interface Question/);
                 assert.match(code, /export interface Account/);
                 assert.match(code, /export type enum.*=\s+\"af\" \| \"af_NA\"/);
+                assert.match(code, /export type enum.*=\s+\"DateTimeType\" \| \"DateType\"/);
+                assert.match(code, /is_increasing\: boolean\;/);
             })
             .toPromise();
     });

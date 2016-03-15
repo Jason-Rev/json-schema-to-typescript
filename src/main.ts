@@ -7,7 +7,6 @@
 
 
 import * as program from 'commander';
-import * as fs from 'fs';
 import * as JsonSchemaTsCodegen from './jsonSchemaTsCodegen';
 import * as fsp from 'fs-promise';
 import * as _ from 'lodash';

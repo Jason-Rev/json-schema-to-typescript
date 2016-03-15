@@ -93,6 +93,7 @@ export class CodeGenerator {
             case 'integer': return 'number';
             case 'number': return 'number';
             case 'boolean': return 'boolean';
+            case 'bool': return 'boolean';
             case 'string': return 'string';
             case 'array': return 'any[]';
             case 'object': return '{[index: string]: any}';
@@ -137,9 +138,9 @@ export class CodeGenerator {
             ? schema.type as string[]
             : (schema.type ? [schema.type as string] : []) ;
 
-        const type = _(schemaTypes).map(this.mapType).value().join('|');
+        const type = _(schemaTypes).map(this.mapType).uniq().value().join('|');
 
-        if (!type && schema.enum) {
+        if ((!type || type === 'string') && schema.enum) {
             return this.registerEnumType(schema.enum);
         }
 
