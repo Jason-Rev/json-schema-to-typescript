@@ -51,8 +51,15 @@ export function fetchSchemaAsPromise(uri: string, domain: string = ''): Promise<
  */
 export function fetchSchema(uri: string, domain: string = ''): Rx.Observable<Schema> {
     const absoluteUri = domain + uri;
-    return fetchFileFromUri(absoluteUri)
-        .map((json: string) => JSON.parse(json));
+    const subject = new Rx.ReplaySubject<Rx.Observable<string>>(1);
+    subject.onNext(fetchFileFromUri(absoluteUri));
+    subject.onCompleted();
+    return subject
+        .flatMap(a => a)
+        .map((json: string) => JSON.parse(json))
+        .tapOnError(error => { console.log(absoluteUri); console.log(error); })
+        .share()
+        ;
 }
 
 function toTitleCase(str) {
@@ -144,6 +151,15 @@ export class CodeGenerator {
             return singleObservable(this.registerEnumType(schema.enum, schema.title));
         }
 
+        if (schema.oneOf) {
+            const dependantSchemas: Schema[] = schema.oneOf instanceof Array ? schema.oneOf : [ schema.oneOf ];
+            return Rx.Observable.from(dependantSchemas)
+                .flatMap(schema => this.convertSchemaToRenderModel(schema))
+                .map(model => model.name)
+                .toArray()
+                .map(modelNames => modelNames.join(' | '));
+        }
+
         if (schema.type === 'object' && schema.properties) {
             return singleObservable(null);
         }
@@ -162,6 +178,17 @@ export class CodeGenerator {
     }
 
     public convertSchemaToRenderModel = (schema: Schema, name?: string) : Rx.Observable<RenderModel> => {
+        if (schema.$ref) {
+            return Rx.Observable.just(schema.$ref)
+                // .tap(uri => console.log(uri))
+                .flatMap(uri => this.fetchSchema(uri))
+                // .tap(schema => console.log(schema.title))
+                .flatMap(schema => this.convertSchemaToRenderModel(schema))
+                // .tap(model => console.log(`Finished: ${schema.$ref}`))
+                .tapOnError(error => { console.log(schema.$ref); console.log(error); })
+                ;
+        }
+
         name = name || toClassName(schema.title);
         const requiredList = schema.required || [];
         const requiredProperties = _.zipObject(requiredList, requiredList);
@@ -177,7 +204,7 @@ export class CodeGenerator {
         return Rx.Observable.zip(
             this.determineType(schema),
             properties,
-            (modelType, properties) => {
+            (modelType, properties): RenderModel => {
                 return {
                     name: name,
                     type: modelType,
@@ -196,6 +223,7 @@ export class CodeGenerator {
             .flatMap(schema => this.convertSchemaToRenderModel(schema))
             // Remember the top level models
             .tap(model => { this.modelsByType[model.name] = model; })
+            // .tap(model => console.log('Ready to Render: ' + model.name))
             .toArray()
             .map(schemaModels => {
                 const models: RenderModel[] = [
