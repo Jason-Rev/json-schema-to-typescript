@@ -4,17 +4,17 @@
     "$schema": "http:\/\/json-schema.org\/draft-04\/schema#",
     "id": ".\/schemas\/question_option.json#",
     "properties": {
-        "isRequired": {
+        "is_required": {
             "type": "boolean",
             "title": "Is Required"
         },
-        "isAllowingNotApplicable": {
+        "is_allowing_not_applicable": {
             "type": "boolean",
             "title": "Is Allowing Not Applicable"
         }
     },
     "required": [
-        "isRequired",
-        "isAllowingNotApplicable"
+        "is_required",
+        "is_allowing_not_applicable"
     ]
 }

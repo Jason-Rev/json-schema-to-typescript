@@ -1,0 +1,20 @@
+{
+    "title": "Text_option",
+    "type": "object",
+    "$schema": "http:\/\/json-schema.org\/draft-04\/schema#",
+    "id": ".\/schemas\/text_option.json#",
+    "properties": {
+        "size": {
+            "type": "string",
+            "enum": [
+                "small",
+                "medium",
+                "large"
+            ],
+            "title": "Size"
+        }
+    },
+    "required": [
+        "size"
+    ]
+}

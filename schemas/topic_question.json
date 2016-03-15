@@ -1,0 +1,94 @@
+{
+    "title": "Topic_question",
+    "type": "object",
+    "$schema": "http:\/\/json-schema.org\/draft-04\/schema#",
+    "id": ".\/schemas\/topic_question.json#",
+    "properties": {
+        "question": {
+            "type": "integer",
+            "links": [
+                {
+                    "rel": "full",
+                    "href": ".\/questions\/{$}.json"
+                }
+            ],
+            "title": "Question"
+        },
+        "id": {
+            "type": "integer",
+            "readonly": true,
+            "title": "Id"
+        },
+        "question_option": {
+            "type": "object",
+            "title": "Question Option",
+            "oneOf": [
+                {
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "default"
+                            ]
+                        }
+                    },
+                    "$ref": ".\/schemas\/question_option.json#"
+                },
+                {
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "multiple_choice"
+                            ]
+                        }
+                    },
+                    "$ref": ".\/schemas\/multiple_choice_question_option.json#"
+                },
+                {
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "open_ended"
+                            ]
+                        }
+                    },
+                    "$ref": ".\/schemas\/open_ended_question_option.json#"
+                },
+                {
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "predefined_choice_date"
+                            ]
+                        }
+                    },
+                    "$ref": ".\/schemas\/date_question_option.json#"
+                }
+            ]
+        },
+        "tags": {
+            "type": "array",
+            "items": {
+                "type": "integer",
+                "links": [
+                    {
+                        "rel": "full",
+                        "href": ".\/tags\/{$}.json"
+                    }
+                ]
+            },
+            "title": "Tags"
+        },
+        "_embedded": {
+            "type": "object",
+            "readonly": true
+        }
+    },
+    "required": [
+        "question",
+        "question_option"
+    ]
+}
