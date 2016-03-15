@@ -106,7 +106,9 @@ export class CodeGenerator {
     }
 
     determineType(schema: Schema): string {
-        const schemaTypes: string[] = schema.type instanceof Array ? schema.type as string[] : (schema.type ? [schema.type as string] : []) ;
+        const schemaTypes: string[] = schema.type instanceof Array
+            ? schema.type as string[]
+            : (schema.type ? [schema.type as string] : []) ;
 
         const type = _(schemaTypes).map(this.mapType).value().join('|');
 
