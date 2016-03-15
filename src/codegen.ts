@@ -21,7 +21,7 @@ const templateInterface = `
 };
 {{/inline}}
 /**
- * {{name}}
+ * {{name}}{{#if title}} -- {{title}}{{/if}}
  */
 {{#if type}}
 export type {{name}} = {{type}};
@@ -47,6 +47,7 @@ const renderer = handlebars.compile(templateInterface, handlebarsConfig);
 export interface RenderModel {
     name: string;
     type?: string;
+    title?: string;
     properties?: RenderModel[];
     readonly?: boolean;
     required?: boolean;

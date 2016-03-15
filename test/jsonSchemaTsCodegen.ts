@@ -43,6 +43,8 @@ describe('test Json Schema TS Codegen', () => {
                 assert.match(code, /export type enum.*=\s+\"DateTimeType\" \| \"DateType\"/);
                 assert.match(code, /is_increasing\: boolean\;/);
                 assert.match(code, /is_increasing\: boolean\;\n\s+min: number;/);
+                assert.match(code, /\* RangeLabel -- Range_label/);
+                assert.notMatch(code, / $/); // make sure there are no trailing spaces.
             })
             .toPromise();
     });

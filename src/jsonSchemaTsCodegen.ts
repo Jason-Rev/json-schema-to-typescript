@@ -116,7 +116,7 @@ export class CodeGenerator {
         return interfaceName;
     }
 
-    registerEnumType(enumValues: string[]) {
+    registerEnumType(enumValues: string[], title?: string) {
             const options = _.map(enumValues, v => JSON.stringify(v));
             if (options.length > 0) {
                 const type = options.join(' | ');
@@ -127,7 +127,7 @@ export class CodeGenerator {
                     .replace(/(.{50,70}\s\|)\s/, '$1\n        ')
                     .replace(/(.{80,100}\s\|)\s/g, '$1\n        ');
                 if (! this.subTypes[sig]) {
-                    this.subTypes[sig] = { name: sig, type: typeLineWrapped };
+                    this.subTypes[sig] = { name: sig, type: typeLineWrapped, title };
                 }
                 return sig;
             }
@@ -142,7 +142,7 @@ export class CodeGenerator {
         const type = _(schemaTypes).map(this.mapType).uniq().value().join('|');
 
         if ((!type || type === 'string') && schema.enum) {
-            return this.registerEnumType(schema.enum);
+            return this.registerEnumType(schema.enum, schema.title);
         }
 
         if (schema.type === 'object' && schema.properties) {
@@ -184,6 +184,7 @@ export class CodeGenerator {
         return {
             name: name,
             type: modelType,
+            title: schema.title,
             properties
         };
     };
