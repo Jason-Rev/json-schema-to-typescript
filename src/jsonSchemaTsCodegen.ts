@@ -13,25 +13,31 @@ import { fromStream } from 'rx-node';
 import { Schema } from './jsonschema';
 import { generateCode, RenderModel } from './codegen';
 
+function readEntireStreamAsPromise(stream: Stream) {
+    return readEntireStream(stream).toPromise();
+}
+
 function readEntireStream(stream: Stream) {
-    return fromStream(stream).reduce((doc: string, append: string) => doc + append, '').toPromise();
+    return fromStream(stream).reduce((doc: string, append: string) => doc + append, '');
 }
 
 /**
  * @param {string} uri -- the absolute path to the resource - supports file:, http:.
  * @returns {Promise<string>}
  */
-export function fetchFileFromUri(uri: string) {
-    return new Promise((resolve, reject) => {
-        getUri(uri, (error: NodeJS.ErrnoException, rs: fs.ReadStream) => {
-            if (error) {
-                reject(error);
-                return;
-            }
+export function fetchFileFromUriAsPromise(uri: string) {
+    return fetchFileFromUri(uri).toPromise<Promise<string>>(Promise);
+}
 
-            resolve(readEntireStream(rs));
-        });
-    });
+/**
+ * @param {string} uri -- the absolute path to the resource - supports file:, http:.
+ * @returns {Rx.Observable<string>}
+ */
+export function fetchFileFromUri(uri: string) {
+    const rxGetUri = Rx.Observable.fromNodeCallback<fs.ReadStream>(getUri);
+    return rxGetUri(uri)
+        .flatMap(stream => fromStream<string>(stream))
+        .reduce((doc: string, append: string) => doc + append, '');
 }
 
 /**
@@ -40,9 +46,20 @@ export function fetchFileFromUri(uri: string) {
  * @param domain -- optional domain prefixed to the uri
  * @returns {Promise<Schema>}
  */
-export function fetchSchema(uri: string, domain: string = ''): Promise<Schema> {
+export function fetchSchemaAsPromise(uri: string, domain: string = ''): Promise<Schema> {
+    return fetchSchema(uri, domain).toPromise<Promise<Schema>>(Promise);
+}
+
+/**
+ *
+ * @param uri -- the uri (can be relative to domain
+ * @param domain -- optional domain prefixed to the uri
+ * @returns {Rx.Observable<Schema>}
+ */
+export function fetchSchema(uri: string, domain: string = ''): Rx.Observable<Schema> {
     const absoluteUri = domain + uri;
-    return fetchFileFromUri(absoluteUri).then((json: string) => JSON.parse(json));
+    return fetchFileFromUri(absoluteUri)
+        .map((json: string) => JSON.parse(json));
 }
 
 function toTitleCase(str) {
@@ -76,7 +93,7 @@ export class CodeGenerator {
 
     fetchSchema(uri: string) {
         return this.schemas[uri] ||
-            (this.schemas[uri] = fetchSchema(uri, this.domain));
+            (this.schemas[uri] = fetchSchemaAsPromise(uri, this.domain));
     }
 
     mapType(type: string): string {

@@ -46,7 +46,7 @@ The collection can be an array of uri's or a set of uris.
     .action((uriCollection: string, outfile: string) => {
         const generator = new JsonSchemaTsCodegen.CodeGenerator();
         console.log(`Building interfaces for "${uriCollection}" and writing to ${outfile}`);
-        JsonSchemaTsCodegen.fetchFileFromUri(uriCollection)
+        JsonSchemaTsCodegen.fetchFileFromUriAsPromise(uriCollection)
             .then((json: string) => JSON.parse(json))
             .then((collection: Dictionary<string>) => _.map(collection, a => a))
             .then((uris: string[]) => generator.generateCodeFromSchemaUris(uris))
