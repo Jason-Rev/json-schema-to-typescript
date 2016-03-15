@@ -9,7 +9,7 @@ const templateInterface = `
 {{#*inline 'simpleType'}}
 {{name}}{{^required}}?{{/required}}: {{type}};
 {{/inline}}
-{{#*inline 'complexType'}} 
+{{#*inline 'complexType'}}
 {{name}}{{^required}}?{{/required}}: {
     {{#each properties}}
         {{#if type}}
@@ -17,12 +17,15 @@ const templateInterface = `
         {{else}}
     {{> complexType}}
         {{/if}}
-    {{/each}}    
+    {{/each}}
 };
 {{/inline}}
 /**
  * {{name}}
  */
+{{#if type}}
+export type {{name}} = {{type}};
+{{else}}
 export interface {{name}} {
     {{#each properties}}
         {{#if type}}
@@ -32,10 +35,11 @@ export interface {{name}} {
         {{/if}}
     {{/each}}
 }
+{{/if}}
 `;
 
 const handlebarsConfig = {
-    noEscape: true    
+    noEscape: true
 };
 
 const renderer = handlebars.compile(templateInterface, handlebarsConfig);

@@ -39,6 +39,7 @@ describe('test Json Schema TS Codegen', () => {
                 assert.match(code, /export interface Tag/);
                 assert.match(code, /export interface Question/);
                 assert.match(code, /export interface Account/);
+                assert.match(code, /export type enum.*=\s+\"af\" \| \"af_NA\"/);
             })
             .toPromise();
     });
@@ -117,5 +118,4 @@ describe('test fetching files with Rx', () => {
         ;
     });
 });
-
 

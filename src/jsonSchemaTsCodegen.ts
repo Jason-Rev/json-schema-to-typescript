@@ -8,18 +8,10 @@ import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as Rx from 'rx';
 import getUri = require('get-uri');
-import { Stream } from 'stream';
 import { fromStream } from 'rx-node';
 import { Schema } from './jsonschema';
 import { generateCode, RenderModel } from './codegen';
-
-function readEntireStreamAsPromise(stream: Stream) {
-    return readEntireStream(stream).toPromise();
-}
-
-function readEntireStream(stream: Stream) {
-    return fromStream(stream).reduce((doc: string, append: string) => doc + append, '');
-}
+import * as crypto from 'crypto';
 
 /**
  * @param {string} uri -- the absolute path to the resource - supports file:, http:.
@@ -37,6 +29,7 @@ export function fetchFileFromUri(uri: string) {
     const rxGetUri = Rx.Observable.fromNodeCallback<fs.ReadStream>(getUri);
     return rxGetUri(uri)
         .flatMap(stream => fromStream<string>(stream))
+        // Concat all the strings in the stream into a single doc.
         .reduce((doc: string, append: string) => doc + append, '');
 }
 
@@ -84,8 +77,7 @@ function normalizePromise<T>(promise) {
 
 export class CodeGenerator {
 
-    schemas: _.Dictionary<Promise<Schema>> = {};
-
+    schemas: _.Dictionary<Rx.Observable<Schema>> = {};
     subTypes: _.Dictionary<RenderModel> = {};
     modelsByType: _.Dictionary<RenderModel> = {};
 
@@ -93,7 +85,7 @@ export class CodeGenerator {
 
     fetchSchema(uri: string) {
         return this.schemas[uri] ||
-            (this.schemas[uri] = fetchSchemaAsPromise(uri, this.domain));
+            (this.schemas[uri] = fetchSchema(uri, this.domain));
     }
 
     mapType(type: string): string {
@@ -122,6 +114,24 @@ export class CodeGenerator {
         return interfaceName;
     }
 
+    registerEnumType(enumValues: string[]) {
+            const options = _.map(enumValues, v => JSON.stringify(v));
+            if (options.length > 0) {
+                const type = options.join(' | ');
+                const hash = crypto.createHash('md5');
+                hash.update(type);
+                const sig = 'enum_' + hash.digest('hex');
+                const typeLineWrapped = type
+                    .replace(/(.{50,70}\s\|)\s/, '$1\n        ')
+                    .replace(/(.{80,100}\s\|)\s/g, '$1\n        ');
+                if (! this.subTypes[sig]) {
+                    this.subTypes[sig] = { name: sig, type: typeLineWrapped };
+                }
+                return sig;
+            }
+            return 'string';
+    }
+
     determineType(schema: Schema): string {
         const schemaTypes: string[] = schema.type instanceof Array
             ? schema.type as string[]
@@ -130,8 +140,7 @@ export class CodeGenerator {
         const type = _(schemaTypes).map(this.mapType).value().join('|');
 
         if (!type && schema.enum) {
-            const options = _.map(schema.enum, v => JSON.stringify(v));
-            return options.length > 0 ? options.join(' | ') : 'string';
+            return this.registerEnumType(schema.enum);
         }
 
         if (schema.type === 'object' && schema.properties) {
