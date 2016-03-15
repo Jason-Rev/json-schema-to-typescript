@@ -92,6 +92,7 @@ export class CodeGenerator {
         switch (type) {
             case 'integer': return 'number';
             case 'number': return 'number';
+            case 'numeric': return 'number';
             case 'boolean': return 'boolean';
             case 'bool': return 'boolean';
             case 'string': return 'string';
