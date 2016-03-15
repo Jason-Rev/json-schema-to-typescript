@@ -1,9 +1,9 @@
 /**
  * Created by jasondent on 23/02/2016.
  */
-"use strict";
+'use strict';
 
-/// <reference path="./defs.d.ts"/>
+/// <reference path='./defs.d.ts'/>
 
 
 import * as program from 'commander';
@@ -27,7 +27,7 @@ program
         const generator = new JsonSchemaTsCodegen.CodeGenerator();
         generator.generateCodeFromSchema(uri).then(code => {
             return fsp.writeFile(outfile, code);
-        }).then(()=>{
+        }).then(() => {
             console.log('done.');
             process.exit(0);
         },
@@ -40,20 +40,20 @@ program
 program
     .command('build-collection <uriCollection> <outfile>')
     .description(`
-Parse a collection of the JSON-Schema at the given <uriCollection> and write it to <outfile>.  
+Parse a collection of the JSON-Schema at the given <uriCollection> and write it to <outfile>.
 The collection can be an array of uri's or a set of uris.
 `)
     .action((uriCollection: string, outfile: string) => {
         const generator = new JsonSchemaTsCodegen.CodeGenerator();
         console.log(`Building interfaces for "${uriCollection}" and writing to ${outfile}`);
         JsonSchemaTsCodegen.fetchFileFromUri(uriCollection)
-            .then((json:string) => JSON.parse(json))
-            .then((collection:Dictionary<string>) => _.map(collection, a=>a))
-            .then((uris:string[]) => generator.generateCodeFromSchemaUris(uris))
+            .then((json: string) => JSON.parse(json))
+            .then((collection: Dictionary<string>) => _.map(collection, a => a))
+            .then((uris: string[]) => generator.generateCodeFromSchemaUris(uris))
             .then(code => {
                 return fsp.writeFile(outfile, code);
             })
-            .then(()=>{
+            .then(() => {
                 console.log('done.');
                 process.exit(0);
             },

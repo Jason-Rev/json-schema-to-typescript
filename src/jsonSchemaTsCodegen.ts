@@ -4,24 +4,24 @@
 
 /// <reference path="./defs.d.ts"/>
 
-import * as fs from "fs";
-import * as _ from "lodash";
-import * as Rx from "rx";
-import getUri = require("get-uri");
+import * as fs from 'fs';
+import * as _ from 'lodash';
+import * as Rx from 'rx';
+import getUri = require('get-uri');
 import { Stream } from 'stream';
 import { fromStream } from 'rx-node';
 import { Schema } from './jsonschema';
 import { generateCode, RenderModel } from './codegen';
 
 function readEntireStream(stream: Stream) {
-    return fromStream(stream).reduce((doc:string, append:string)=>doc + append, '').toPromise();
+    return fromStream(stream).reduce((doc: string, append: string) => doc + append, '').toPromise();
 }
 
 /**
  * @param {string} uri -- the absolute path to the resource - supports file:, http:.
  * @returns {Promise<string>}
  */
-export function fetchFileFromUri(uri : string) {
+export function fetchFileFromUri(uri: string) {
     return new Promise((resolve, reject) => {
         getUri(uri, (error: NodeJS.ErrnoException, rs: fs.ReadStream) => {
             if (error) {
@@ -40,14 +40,15 @@ export function fetchFileFromUri(uri : string) {
  * @param domain -- optional domain prefixed to the uri
  * @returns {Promise<Schema>}
  */
-export function fetchSchema(uri : string, domain: string = ''): Promise<Schema> {
+export function fetchSchema(uri: string, domain: string = ''): Promise<Schema> {
     const absoluteUri = domain + uri;
-    return fetchFileFromUri(absoluteUri).then((json:string) => JSON.parse(json));
+    return fetchFileFromUri(absoluteUri).then((json: string) => JSON.parse(json));
 }
 
-function toTitleCase(str)
-{
-    return str.replace(/\w+/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+function toTitleCase(str) {
+    return str.replace(/\w+/g, function(txt){
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    });
 }
 
 /**
@@ -61,7 +62,7 @@ function toClassName(str) {
  * convert a thenable into a Promise<>
  */
 function normalizePromise<T>(promise) {
-    return new Promise<T>((resolve, reject) => { promise.then(resolve, reject) });
+    return new Promise<T>((resolve, reject) => { promise.then(resolve, reject); });
 }
 
 export class CodeGenerator {
@@ -110,17 +111,18 @@ export class CodeGenerator {
         const type = _(schemaTypes).map(this.mapType).value().join('|');
 
         if (!type && schema.enum) {
-            return 'string';
+            const options = _.map(schema.enum, v => JSON.stringify(v));
+            return options.length > 0 ? options.join(' | ') : 'string';
         }
 
-        if (schema.type == 'object' && schema.properties) {
+        if (schema.type === 'object' && schema.properties) {
             return null;
         }
 
         if (schema.items) {
             const schemaItem = schema.items as Schema;
             const schemaSubType = this.registerSubType(schemaItem);
-            if (schema.type == 'array') {
+            if (schema.type === 'array') {
                 return schemaSubType + '[]';
             }
             return schemaSubType;
@@ -145,7 +147,7 @@ export class CodeGenerator {
                 const required = requiredProperties[model.name] || false;
                 return _.assign({ required }, model) as RenderModel;
             })
-            .value()
+            .value();
 
         const modelType: string = this.determineType(schema);
 
@@ -159,7 +161,7 @@ export class CodeGenerator {
     generateCodeFromSchemaUris(uris: string[]): Promise<string> {
         return normalizePromise<string>(Rx.Observable.from(uris)
             .map(uri => this.fetchSchema(uri))
-            .flatMap(s=>s) // convert the Promise<schema> into schema
+            .flatMap(s => s) // convert the Promise<schema> into schema
             .map(schema => this.convertSchemaToRenderModel(schema))
             // Remember the top level models
             .tap(model => { this.modelsByType[model.name] = model; })
@@ -169,7 +171,7 @@ export class CodeGenerator {
                     ...schemaModels,
                     ...(_(this.subTypes)
                         .filter(model => ! this.modelsByType[model.name])
-                        .map(a=>a).value())
+                        .map(a => a).value())
                 ];
 
                 return _(models)

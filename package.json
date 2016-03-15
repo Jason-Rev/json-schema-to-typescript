@@ -24,6 +24,7 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "mocha": "^2.4.5",
+    "tslint": "^3.6.0",
     "typescript": "^1.8.2",
     "typings": "^0.6.8"
   },
@@ -38,6 +39,7 @@
     "lodash": "^4.5.1",
     "mustache": "^2.2.1",
     "rx": "^4.0.8",
-    "rx-node": "^1.0.2"
+    "rx-node": "^1.0.2",
+    "typescript": "^1.8.7"
   }
 }
