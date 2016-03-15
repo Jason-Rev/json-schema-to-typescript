@@ -1,8 +1,8 @@
 {
     "title": "Open_ended_question",
     "type": "object",
-    "$schema": "http:\/\/json-schema.org\/draft-04\/schema#",
-    "id": ".\/schemas\/open_ended_question.json#",
+    "$schema": "http:\/\/json-schema.org\/draft-04\/schema",
+    "id": ".\/open_ended_question.json",
     "properties": {
         "character_limit": {
             "type": "integer",

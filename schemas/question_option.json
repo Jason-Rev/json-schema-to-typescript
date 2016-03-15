@@ -1,8 +1,8 @@
 {
     "title": "Question_option",
     "type": "object",
-    "$schema": "http:\/\/json-schema.org\/draft-04\/schema#",
-    "id": ".\/schemas\/question_option.json#",
+    "$schema": "http:\/\/json-schema.org\/draft-04\/schema",
+    "id": ".\/question_option.json",
     "properties": {
         "is_required": {
             "type": "boolean",

@@ -1,8 +1,8 @@
 {
     "title": "Range_question_answer",
     "type": "object",
-    "$schema": "http:\/\/json-schema.org\/draft-04\/schema#",
-    "id": ".\/schemas\/range_question_answer.json#",
+    "$schema": "http:\/\/json-schema.org\/draft-04\/schema",
+    "id": ".\/range_question_answer.json",
     "properties": {
         "labels": {
             "type": "array",

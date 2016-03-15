@@ -1,8 +1,8 @@
 {
     "title": "Question",
     "type": "object",
-    "$schema": "http:\/\/json-schema.org\/draft-04\/schema#",
-    "id": ".\/schemas\/question.json#",
+    "$schema": "http:\/\/json-schema.org\/draft-04\/schema",
+    "id": ".\/question.json",
     "oneOf": [
         {
             "properties": {
@@ -13,7 +13,7 @@
                     ]
                 }
             },
-            "$ref": ".\/schemas\/multiple_choice_question.json#"
+            "$ref": ".\/multiple_choice_question.json"
         },
         {
             "properties": {
@@ -24,7 +24,7 @@
                     ]
                 }
             },
-            "$ref": ".\/schemas\/open_ended_question.json#"
+            "$ref": ".\/open_ended_question.json"
         },
         {
             "properties": {
@@ -35,7 +35,7 @@
                     ]
                 }
             },
-            "$ref": ".\/schemas\/range_question.json#"
+            "$ref": ".\/range_question.json"
         },
         {
             "properties": {
@@ -46,7 +46,7 @@
                     ]
                 }
             },
-            "$ref": ".\/schemas\/predefined_choice_question.json#"
+            "$ref": ".\/predefined_choice_question.json"
         }
     ]
 }

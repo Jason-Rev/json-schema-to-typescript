@@ -1,8 +1,8 @@
 {
     "title": "Text",
     "type": "object",
-    "$schema": "http:\/\/json-schema.org\/draft-04\/schema#",
-    "id": ".\/schemas\/text.json#",
+    "$schema": "http:\/\/json-schema.org\/draft-04\/schema",
+    "id": ".\/text.json",
     "properties": {
         "text_translations": {
             "type": "array",

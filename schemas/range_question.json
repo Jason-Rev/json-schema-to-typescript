@@ -1,8 +1,8 @@
 {
     "title": "Range_question",
     "type": "object",
-    "$schema": "http:\/\/json-schema.org\/draft-04\/schema#",
-    "id": ".\/schemas\/range_question.json#",
+    "$schema": "http:\/\/json-schema.org\/draft-04\/schema",
+    "id": ".\/range_question.json",
     "properties": {
         "question_answer": {
             "type": "integer",

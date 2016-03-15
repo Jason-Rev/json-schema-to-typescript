@@ -1,8 +1,8 @@
 {
     "title": "Multiple_choice_question_answer",
     "type": "object",
-    "$schema": "http:\/\/json-schema.org\/draft-04\/schema#",
-    "id": ".\/schemas\/multiple_choice_question_answer.json#",
+    "$schema": "http:\/\/json-schema.org\/draft-04\/schema",
+    "id": ".\/multiple_choice_question_answer.json",
     "properties": {
         "type": {
             "readonly": true,
