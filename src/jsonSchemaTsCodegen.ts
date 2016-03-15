@@ -68,11 +68,8 @@ function toClassName(str) {
     return toTitleCase(str.replace(/[_-]/g, ' ')).replace(/\s+/g, '');
 }
 
-/**
- * convert a thenable into a Promise<>
- */
-function normalizePromise<T>(promise) {
-    return new Promise<T>((resolve, reject) => { promise.then(resolve, reject); });
+function singleObservable<T>(value: T) {
+    return Rx.Observable.just<T>(value);
 }
 
 export class CodeGenerator {
@@ -102,18 +99,20 @@ export class CodeGenerator {
         return 'any';
     }
 
-    registerSubType(schema: Schema) {
+    registerSubType(schema: Schema): Rx.Observable<string> {
         if (! schema.title) {
-            return this.mapType(schema.type as string);
+            return singleObservable(this.mapType(schema.type as string));
         }
 
         const interfaceName = toClassName(schema.title);
-
-        if (! this.subTypes[interfaceName]) {
-            this.subTypes[interfaceName] = this.convertSchemaToRenderModel(schema);
+        if (this.subTypes[interfaceName]) {
+            // We already have it, no need to generate it again.
+            return singleObservable(interfaceName);
         }
 
-        return interfaceName;
+        return this.convertSchemaToRenderModel(schema)
+            .tap(model => this.subTypes[model.name] = model)
+            .map(model => model.name);
     }
 
     registerEnumType(enumValues: string[], title?: string) {
@@ -134,7 +133,7 @@ export class CodeGenerator {
             return 'string';
     }
 
-    determineType(schema: Schema): string {
+    determineType(schema: Schema): Rx.Observable<string> {
         const schemaTypes: string[] = schema.type instanceof Array
             ? schema.type as string[]
             : (schema.type ? [schema.type as string] : []) ;
@@ -142,58 +141,59 @@ export class CodeGenerator {
         const type = _(schemaTypes).map(this.mapType).uniq().value().join('|');
 
         if ((!type || type === 'string') && schema.enum) {
-            return this.registerEnumType(schema.enum, schema.title);
+            return singleObservable(this.registerEnumType(schema.enum, schema.title));
         }
 
         if (schema.type === 'object' && schema.properties) {
-            return null;
+            return singleObservable(null);
         }
 
         if (schema.items) {
             const schemaItem = schema.items as Schema;
-            const schemaSubType = this.registerSubType(schemaItem);
-            if (schema.type === 'array') {
-                return schemaSubType + '[]';
-            }
-            return schemaSubType;
+            return this.registerSubType(schemaItem)
+                .map(schemaSubType => schema.type === 'array' ? schemaSubType + '[]' : schemaSubType);
         }
 
         if (!type && !schema.properties) {
-            return 'any';
+            return singleObservable('any');
         }
 
-        return type;
+        return singleObservable(type);
     }
 
-    public convertSchemaToRenderModel = (schema: Schema, name?: string) : RenderModel => {
+    public convertSchemaToRenderModel = (schema: Schema, name?: string) : Rx.Observable<RenderModel> => {
         name = name || toClassName(schema.title);
         const requiredList = schema.required || [];
         const requiredProperties = _.zipObject(requiredList, requiredList);
-        const properties: RenderModel[] = _(schema.properties || [])
-            // convert the schema to a RenderModel
-            .mapValues(this.convertSchemaToRenderModel)
-            // add the required flag
+
+        const properties: Rx.Observable<RenderModel[]> = Rx.Observable.pairs(schema.properties || {})
+            .flatMap(kvp => {const [name, schema] = kvp; return this.convertSchemaToRenderModel(schema, name); })
             .map((model: RenderModel) => {
                 const required = requiredProperties[model.name] || false;
                 return _.assign({ required }, model) as RenderModel;
             })
-            .value();
+            .toArray();
 
-        const modelType: string = this.determineType(schema);
-
-        return {
-            name: name,
-            type: modelType,
-            title: schema.title,
-            properties
-        };
+        return Rx.Observable.zip(
+            this.determineType(schema),
+            properties,
+            (modelType, properties) => {
+                return {
+                    name: name,
+                    type: modelType,
+                    title: schema.title,
+                    properties
+                };
+            }
+        );
     };
 
+
+
     generateCodeFromSchemaUris(uris: string[]): Promise<string> {
-        return normalizePromise<string>(Rx.Observable.from(uris)
-            .map(uri => this.fetchSchema(uri))
-            .flatMap(s => s) // convert the Promise<schema> into schema
-            .map(schema => this.convertSchemaToRenderModel(schema))
+        return Rx.Observable.from(uris)
+            .flatMap(uri => this.fetchSchema(uri))
+            .flatMap(schema => this.convertSchemaToRenderModel(schema))
             // Remember the top level models
             .tap(model => { this.modelsByType[model.name] = model; })
             .toArray()
@@ -211,7 +211,7 @@ export class CodeGenerator {
                     .join('\n');
 
             })
-            .toPromise());
+            .toPromise<Promise<string>>(Promise);
     }
 
     generateCodeFromSchema(uri: string) {
